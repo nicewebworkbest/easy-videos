@@ -1,5 +1,10 @@
 (function($){
 	$(document).on('submit', '#import-form', function(){
+		if ($('#channel-id').val() == '') {
+			$('.result').html('Please add channel ID!');
+			return false;
+		}
+
 		$.ajax({
 			url: js_vars.ajax_url,
 			type: "POST",

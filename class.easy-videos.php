@@ -123,13 +123,19 @@ class EasyVideos {
 	 * Import video via ajax.
 	 */
 	function ajax_import_video() {
-		$google_api_key	= ( ! empty( $_POST['google_api_key'] ) ) ? $_POST['google_api_key'] : '';
+
+		// Get Google API key.
+		$google_api_key	= get_option( 'google_api_key' );
+		if ( empty( $google_api_key ) ) {
+			$error_message = esc_html__( 'Please add Google API Key in Settings page.', 'easy-videos' );
+			wp_send_json_error( array( 'message' => $error_message ) );
+		}
 		$channel_id		= ( ! empty( $_POST['channel_id'] ) ) ? $_POST['channel_id'] : '';
 		$page_token		= ( ! empty( $_POST['page_token'] ) ) ? $_POST['page_token'] : '';
 
-		if ( empty( $google_api_key ) || empty( $channel_id ) ) {
-			$error_message = esc_html__( 'Please add Google API Key and Channel ID', 'easy-videos' );
-			wp_send_json_error( array( 'message' => esc_html__( 'Please add Google API Key and Channel ID', 'easy-videos' ) ) );
+		if ( empty( $channel_id ) ) {
+			$error_message = esc_html__( 'Please add Channel ID!', 'easy-videos' );
+			wp_send_json_error( array( 'message' => $error_message ) );
 		} else {
 			$result = $this->import_videos( $google_api_key, $channel_id, $page_token );
 			wp_send_json_success( $result );
