@@ -93,9 +93,15 @@ class EasyVideos {
 	 * Add video import page to menu.
 	 */
 	function add_menu_items() {
-		$page = add_submenu_page( 'edit.php?post_type=video', esc_html__( 'Import Videos', 'easy-videos' ), esc_html__( 'Import Videos', 'easy-videos' ), 'edit_posts', 'import_videos', array( $this, 'render_import_videos_page' ) );
+		$import_page = add_submenu_page( 'edit.php?post_type=video', esc_html__( 'Import Videos', 'easy-videos' ), esc_html__( 'Import Videos', 'easy-videos' ), 'edit_posts', 'import_videos', array( $this, 'render_import_videos_page' ) );
 
-		add_action( 'admin_print_scripts-' . $page, array( $this, 'admin_import_video_page_enqueue_scripts' ) );
+		// Enqueue javacripts.
+		add_action( 'admin_print_scripts-' . $import_page, array( $this, 'admin_import_video_page_enqueue_scripts' ) );
+
+		$setting_page = add_submenu_page( 'edit.php?post_type=video', esc_html__( 'Settings', 'easy-videos' ), esc_html__( 'Settings', 'easy-videos' ), 'edit_posts', 'import-video-settings', array( $this, 'render_settings_page' ) );
+
+		// Enqueue javacripts.
+		add_action( 'admin_print_scripts-' . $setting_page, array( $this, 'admin_settings_page_enqueue_scripts' ) );
 	}
 
 	/*
@@ -104,6 +110,13 @@ class EasyVideos {
 	function admin_import_video_page_enqueue_scripts() {
 		wp_enqueue_script( 'admin-import-video' , EASY_VIDEOS_PLUGIN_URI . 'js/import-video.js', array( 'jquery' ), '1.0', true );
 		wp_localize_script( 'admin-import-video', 'js_vars', array( 'ajax_url' => admin_url( 'admin-ajax.php' ) ) );
+	}
+
+	/*
+	 * Render Youtube video Settings page.
+	 */
+	function admin_settings_page_enqueue_scripts() {
+		wp_enqueue_script( 'admin-video-settings' , EASY_VIDEOS_PLUGIN_URI . 'js/settings.js', array( 'jquery' ), '1.0', true );
 	}
 
 	/*
@@ -129,16 +142,13 @@ class EasyVideos {
 	function render_import_videos_page() {
 		?>
 		<div class="wrap">
-			<h2><?php echo esc_html__( 'Import videos from Youtube channel.'); ?></h2>
+			<h2><?php echo esc_html__( 'Import videos from Youtube channel.', 'easy-videos' ); ?></h2>
 
 			<div class="form-wrapper">
 				<form class="import-form" id="import-form" method="post">
 					<input type="hidden" name="action" value="import_video">
 					<input type="hidden" id="page-token" name="page_token" value="">
-					<div class="control-wrapper">
-						<label for="google-api-key"><?php echo esc_html__( 'Google API Key', 'easy-videos' ); ?>:</label>
-						<input type="text" id="google-api-key" name="google_api_key">
-					</div>
+
 					<div class="control-wrapper">
 						<label for="channel-id"><?php echo esc_html__( 'Youtube Channel ID', 'easy-videos' ); ?>:</label>
 						<input type="text" id="channel-id" name="channel_id">
@@ -150,6 +160,46 @@ class EasyVideos {
 			</div>
 
 			<div class="result"></div>
+		</div>
+		<?php
+	}
+
+	/*
+	 * Render video settings page.
+	 */
+	function render_settings_page() {
+
+		//Initialize.
+		$result_message = "";
+		// Save API key.
+		if ( ! empty( $_POST['action'] ) && $_POST['action'] == 'settings' ) {
+			$google_api_key = $_POST['google_api_key'];
+			update_option( 'google_api_key', $google_api_key );
+			$result_message = esc_html__( 'Saved!', 'easy-videos' );
+		}
+
+		$google_api_key = get_option( 'google_api_key' );
+		if ( ! $google_api_key ) {
+			$google_api_key = '';
+		}
+		?>
+		<div class="wrap">
+			<h2><?php echo esc_html__( 'Settings', 'easy-videos' ); ?></h2>
+
+			<div class="form-wrapper">
+				<form class="settings-form" id="settings-form" method="post">
+					<input type="hidden" name="action" value="settings">
+					<div class="control-wrapper">
+						<label for="google-api-key"><?php echo esc_html__( 'Google API Key', 'easy-videos' ); ?>:</label>
+						<input type="text" id="google-api-key" name="google_api_key" value="<?php echo esc_attr( $google_api_key ); ?>">
+					</div>
+					<div class="control-wrapper">
+						<button type="submit"><?php echo esc_html__( 'Save', 'easy-videos' ); ?></button>
+					</div>
+				</form>
+			</div>
+
+			<div class="result"><?php echo $result_message; ?></div>
 		</div>
 		<?php
 	}
